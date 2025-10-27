@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  currency-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: currency-monitor
+    environment:
+      - IS_DOCKER=true
+      - RMB_CAD_MONITORING_INTERVAL=${RMB_CAD_MONITORING_INTERVAL:-60}
+      - RMB_CAD_THRESHOLD=${RMB_CAD_THRESHOLD:-5.05}
+      - RMB_CAD_MAX_ATTEMPTS=${RMB_CAD_MAX_ATTEMPTS:-3}
+      - RMB_CAD_TIMEOUT=${RMB_CAD_TIMEOUT:-30}
+      - RMB_CAD_LOG_LEVEL=${RMB_CAD_LOG_LEVEL:-INFO}
+      - EXCHANGE_API_KEY=${EXCHANGE_API_KEY:-}
+      - CURRENCY_NOTIFICATION_EMAIL=${CURRENCY_NOTIFICATION_EMAIL}
+      - CURRENCY_GMAIL_APP_PASSWORD=${CURRENCY_GMAIL_APP_PASSWORD}
+      - CURRENCY_RECIPIENT_EMAILS=${CURRENCY_RECIPIENT_EMAILS}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

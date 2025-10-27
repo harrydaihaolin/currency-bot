@@ -1,0 +1,134 @@
+name: Periodic Currency Monitoring
+
+on:
+  schedule:
+    # Run every hour (at the top of each hour)
+    - cron: "0 * * * *"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  monitor-cad-rmb-rate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Configure Currency Bot credentials
+        run: |
+          echo "CURRENCY_NOTIFICATION_EMAIL=${{ secrets.CURRENCY_NOTIFICATION_EMAIL }}" >> $GITHUB_ENV
+          echo "CURRENCY_GMAIL_APP_PASSWORD=${{ secrets.CURRENCY_GMAIL_APP_PASSWORD }}" >> $GITHUB_ENV
+          echo "CURRENCY_RECIPIENT_EMAILS=${{ secrets.CURRENCY_RECIPIENT_EMAILS }}" >> $GITHUB_ENV
+          echo "CAD_RMB_MONITORING_INTERVAL=1" >> $GITHUB_ENV
+          echo "CAD_RMB_THRESHOLD=${{ secrets.CAD_RMB_THRESHOLD }}" >> $GITHUB_ENV
+
+      - name: Run CAD-RMB currency monitoring
+        run: |
+          # Run smart monitoring with GitHub Actions environment
+          python3 -c "
+          import os
+          from currency.config.currency_config import CurrencyConfig
+          from currency.monitor.currency_monitor import CurrencyMonitor
+          from currency.notifications.currency_notifications import CurrencyNotificationManager
+          from datetime import datetime
+
+          print('🔍 Running CAD-RMB currency rate check...')
+
+          # Initialize components
+          config = CurrencyConfig()
+          monitor = CurrencyMonitor(config)
+          notifications = CurrencyNotificationManager(config)
+
+          # Get current rate
+          current_rate = monitor.get_current_rate()
+          threshold = config.get_monitoring_config()['threshold']
+
+          if current_rate:
+              print(f'💱 Current CAD-RMB rate: {current_rate}')
+              print(f'🎯 Threshold: {threshold}')
+              
+              # Prepare rate data
+              rate_data = {
+                  'current_rate': current_rate,
+                  'threshold': threshold,
+                  'timestamp': datetime.now().isoformat(),
+                  'currency_pair': 'CAD-RMB'
+              }
+              
+              # Send smart notifications
+              notification_sent = notifications.send_notifications(rate_data)
+              
+              if notification_sent:
+                  if current_rate < threshold:
+                      print('📧 Alert notification sent!')
+                  else:
+                      print('📧 Daily summary sent!')
+              else:
+                  print('📧 No notification needed')
+          else:
+              print('❌ Failed to fetch current exchange rate')
+
+          print('✅ Currency monitoring completed!')
+          "
+
+      - name: Upload monitoring logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: currency-monitoring-logs-${{ github.run_number }}
+          path: |
+            *.log
+            logs/
+          retention-days: 7
+
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run health check
+        run: |
+          python3 -c "
+          from currency.config.currency_config import CurrencyConfig
+          from currency.monitor.currency_monitor import CurrencyMonitor
+          from currency.notifications.currency_notifications import CurrencyNotificationManager
+          print('✅ Health check passed - all currency bot modules import successfully')
+
+          # Test API connectivity
+          config = CurrencyConfig()
+          monitor = CurrencyMonitor(config)
+          rate = monitor.get_current_rate()
+          if rate:
+              print(f'✅ API connectivity test passed - Current CAD-RMB rate: {rate}')
+          else:
+              print('⚠️  API connectivity test failed - rate could not be fetched')
+          "
+
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    needs: [monitor-cad-rmb-rate]
+    if: failure()
+
+    steps:
+      - name: Notify on failure
+        run: |
+          echo "❌ Currency monitoring workflow failed!"
+          echo "Check the Actions tab for detailed logs."
+          echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

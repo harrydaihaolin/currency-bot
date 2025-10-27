@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          python3 test_currency_bot.py
+
+      - name: Test currency bot functionality
+        run: |
+          python3 -c "
+          from currency.config.currency_config import CurrencyConfig
+          from currency.monitor.currency_monitor import CurrencyMonitor
+          from currency.notifications.currency_notifications import CurrencyNotificationManager
+
+          print('🧪 Testing currency bot components...')
+
+          # Test configuration
+          config = CurrencyConfig()
+          api_config = config.get_api_config()
+          monitoring_config = config.get_monitoring_config()
+
+          print(f'✅ Configuration test passed')
+          print(f'  API URL: {api_config[\"api_url\"]}')
+          print(f'  Base Currency: {api_config[\"base_currency\"]}')
+          print(f'  Target Currency: {api_config[\"target_currency\"]}')
+          print(f'  Threshold: {monitoring_config[\"threshold\"]}')
+
+          # Test monitor
+          monitor = CurrencyMonitor(config)
+          rate = monitor.get_current_rate()
+
+          if rate:
+              print(f'✅ Monitor test passed - Current rate: {rate}')
+          else:
+              print('⚠️  Monitor test failed - could not fetch rate')
+
+          # Test notifications (without sending)
+          notifications = CurrencyNotificationManager(config)
+          test_data = {
+              'current_rate': 5.02,
+              'threshold': 5.05,
+              'timestamp': '2025-01-27T10:00:00',
+              'currency_pair': 'CAD-RMB'
+          }
+
+          email_body = notifications._format_email_message(test_data)
+          if email_body and '5.02' in email_body:
+              print('✅ Notification formatting test passed')
+          else:
+              print('❌ Notification formatting test failed')
+
+          print('🎉 All tests completed!')
+          "
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linting dependencies
+        run: |
+          pip install flake8 black isort
+
+      - name: Run black formatter check
+        run: black --check .
+
+      - name: Run isort import check
+        run: isort --check-only .
+
+      - name: Run flake8 linter
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics

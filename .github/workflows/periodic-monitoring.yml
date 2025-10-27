@@ -6,6 +6,10 @@ on:
     - cron: "0 * * * *"
   workflow_dispatch: # Allow manual triggering
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   monitor-cad-rmb-rate:
     runs-on: ubuntu-latest
@@ -32,25 +36,24 @@ jobs:
 
       - name: Run CAD-RMB currency monitoring
         run: |
-          # Run smart monitoring with GitHub Actions environment
-          python3 -c "
+          python3 << 'EOF'
           import os
           from currency.config.currency_config import CurrencyConfig
           from currency.monitor.currency_monitor import CurrencyMonitor
           from currency.notifications.currency_notifications import CurrencyNotificationManager
           from datetime import datetime
-
+          
           print('🔍 Running CAD-RMB currency rate check...')
-
+          
           # Initialize components
           config = CurrencyConfig()
           monitor = CurrencyMonitor(config)
           notifications = CurrencyNotificationManager(config)
-
+          
           # Get current rate
           current_rate = monitor.get_current_rate()
           threshold = config.get_monitoring_config()['threshold']
-
+          
           if current_rate:
               print(f'💱 Current CAD-RMB rate: {current_rate}')
               print(f'🎯 Threshold: {threshold}')
@@ -75,9 +78,9 @@ jobs:
                   print('📧 No notification needed')
           else:
               print('❌ Failed to fetch current exchange rate')
-
+          
           print('✅ Currency monitoring completed!')
-          "
+          EOF
 
       - name: Upload monitoring logs
         uses: actions/upload-artifact@v4
@@ -105,12 +108,12 @@ jobs:
 
       - name: Run health check
         run: |
-          python3 -c "
+          python3 << 'EOF'
           from currency.config.currency_config import CurrencyConfig
           from currency.monitor.currency_monitor import CurrencyMonitor
           from currency.notifications.currency_notifications import CurrencyNotificationManager
           print('✅ Health check passed - all currency bot modules import successfully')
-
+          
           # Test API connectivity
           config = CurrencyConfig()
           monitor = CurrencyMonitor(config)
@@ -119,7 +122,7 @@ jobs:
               print(f'✅ API connectivity test passed - Current CAD-RMB rate: {rate}')
           else:
               print('⚠️  API connectivity test failed - rate could not be fetched')
-          "
+          EOF
 
   notify-on-failure:
     runs-on: ubuntu-latest

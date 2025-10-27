@@ -4,10 +4,9 @@ Common Configuration Base Class
 Shared configuration functionality for currency monitors
 """
 
-import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 class BaseConfig(ABC):
@@ -49,7 +48,8 @@ class BaseConfig(ABC):
         prefix = self.currency_pair.replace("-", "_").upper()
         return {
             "log_file": os.getenv(
-                f"{prefix}_LOG_FILE", f"{self.currency_pair.lower().replace('-', '_')}_monitoring.log"
+                f"{prefix}_LOG_FILE",
+                f"{self.currency_pair.lower().replace('-', '_')}_monitoring.log",
             ),
             "log_level": os.getenv(f"{prefix}_LOG_LEVEL", "INFO"),
             "log_format": "%(asctime)s - %(levelname)s - %(message)s",

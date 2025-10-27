@@ -3,8 +3,8 @@
 Test script for Currency Exchange Rate Monitor
 """
 
-import sys
 import os
+import sys
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -18,18 +18,18 @@ def test_config():
     """Test configuration loading"""
     print("Testing configuration...")
     config = CurrencyConfig()
-    
+
     # Test API config
     api_config = config.get_api_config()
     print(f"API URL: {api_config['api_url']}")
     print(f"Base Currency: {api_config['base_currency']}")
     print(f"Target Currency: {api_config['target_currency']}")
-    
+
     # Test monitoring config
     monitoring_config = config.get_monitoring_config()
     print(f"Monitoring Interval: {monitoring_config['monitoring_interval']} minutes")
     print(f"Threshold: {monitoring_config['threshold']}")
-    
+
     print("✅ Configuration test passed")
     return True
 
@@ -39,7 +39,7 @@ def test_monitor():
     print("\nTesting currency monitoring...")
     config = CurrencyConfig()
     monitor = CurrencyMonitor(config)
-    
+
     # Test getting current rate
     rate = monitor.get_current_rate()
     if rate:
@@ -56,15 +56,15 @@ def test_notifications():
     print("\nTesting notification system...")
     config = CurrencyConfig()
     notifications = CurrencyNotificationManager(config)
-    
+
     # Test email formatting
     test_data = {
         "current_rate": 5.02,
         "threshold": 5.05,
         "timestamp": "2025-01-27T10:00:00",
-        "currency_pair": "RMB-CAD"
+        "currency_pair": "RMB-CAD",
     }
-    
+
     email_body = notifications._format_email_message(test_data)
     if email_body and "5.02" in email_body:
         print("✅ Email formatting test passed")
@@ -78,25 +78,21 @@ def main():
     """Run all tests"""
     print("🧪 Currency Exchange Rate Monitor - Test Suite")
     print("=" * 50)
-    
-    tests = [
-        test_config,
-        test_monitor,
-        test_notifications
-    ]
-    
+
+    tests = [test_config, test_monitor, test_notifications]
+
     passed = 0
     total = len(tests)
-    
+
     for test in tests:
         try:
             if test():
                 passed += 1
         except Exception as e:
             print(f"❌ Test failed with error: {e}")
-    
+
     print(f"\n📊 Test Results: {passed}/{total} tests passed")
-    
+
     if passed == total:
         print("🎉 All tests passed! The currency bot is ready to use.")
         return 0

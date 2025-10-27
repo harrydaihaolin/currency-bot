@@ -25,15 +25,17 @@ class CurrencyMonitor(BaseMonitor):
             # So we need to get the CNY rate from CAD
             rates = data.get("rates", {})
             cny_rate = rates.get(self.target_currency)
-            
+
             if cny_rate is None:
-                self.logger.error(f"Could not find {self.target_currency} rate in response")
+                self.logger.error(
+                    f"Could not find {self.target_currency} rate in response"
+                )
                 return None
-            
+
             # Convert to CAD-RMB rate (1 CAD = X RMB)
             # Since CAD is the base currency, the rate is already CAD-RMB
             return float(cny_rate)
-            
+
         except (KeyError, ValueError, TypeError) as e:
             self.logger.error(f"Error extracting rate from response: {e}")
             return None
@@ -43,28 +45,27 @@ class CurrencyMonitor(BaseMonitor):
         try:
             api_url = self.api_config["api_url"]
             api_key = self.api_config.get("api_key")
-            
+
             headers = {}
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
-            
+
             import requests
+
             response = requests.get(
-                api_url,
-                headers=headers,
-                timeout=self.monitoring_config["timeout"]
+                api_url, headers=headers, timeout=self.monitoring_config["timeout"]
             )
             response.raise_for_status()
-            
+
             data = response.json()
-            
+
             return {
                 "base_currency": data.get("base", self.base_currency),
                 "date": data.get("date"),
                 "rates": data.get("rates", {}),
-                "target_rate": self._extract_rate_from_response(data)
+                "target_rate": self._extract_rate_from_response(data),
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error getting rate info: {e}")
             return None

@@ -50,7 +50,7 @@ The currency monitoring workflow runs:
 ### 1. Monitor CAD-RMB Rate
 - Fetches current CAD-RMB exchange rate
 - Compares against threshold
-- **Smart Notifications**: 
+- **Smart Notifications**:
   - Sends ONE alert per day when rate drops below threshold
   - Sends daily summary at midnight when rate is above threshold
   - Prevents email spam with intelligent timing

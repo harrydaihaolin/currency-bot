@@ -49,24 +49,24 @@ is_daemon_running() {
 # Function to start daemon
 start_daemon() {
     local interval=${1:-60}
-    
+
     if is_daemon_running; then
         print_warning "Currency monitor daemon is already running (PID: $(cat "$PID_FILE"))"
         return 1
     fi
-    
+
     print_status "Starting currency monitor daemon with ${interval}-minute intervals..."
-    
+
     # Set environment variables
     export CAD_RMB_MONITORING_INTERVAL="$interval"
-    
+
     # Start daemon in background
     nohup python3 "$DAEMON_SCRIPT" > "$LOG_FILE" 2>&1 &
     local pid=$!
-    
+
     # Save PID
     echo "$pid" > "$PID_FILE"
-    
+
     # Wait a moment and check if it's still running
     sleep 2
     if is_daemon_running; then
@@ -88,27 +88,27 @@ stop_daemon() {
         print_warning "Currency monitor daemon is not running"
         return 1
     fi
-    
+
     local pid=$(cat "$PID_FILE")
     print_status "Stopping currency monitor daemon (PID: $pid)..."
-    
+
     # Try graceful termination first
     kill "$pid"
-    
+
     # Wait for graceful shutdown
     local count=0
     while [ $count -lt 10 ] && is_daemon_running; do
         sleep 1
         count=$((count + 1))
     done
-    
+
     # Force kill if still running
     if is_daemon_running; then
         print_warning "Graceful shutdown failed, forcing termination..."
         kill -9 "$pid"
         sleep 1
     fi
-    
+
     if ! is_daemon_running; then
         print_success "Currency monitor daemon stopped successfully"
         rm -f "$PID_FILE"
@@ -132,16 +132,16 @@ restart_daemon() {
 show_status() {
     print_status "Currency Exchange Rate Monitor Daemon Status"
     echo "=================================================="
-    
+
     if is_daemon_running; then
         local pid=$(cat "$PID_FILE")
         print_success "Status: RUNNING (PID: $pid)"
-        
+
         # Show process info
         echo ""
         print_status "Process Information:"
         ps -p "$pid" -o pid,ppid,cmd,etime,pcpu,pmem
-        
+
         # Show configuration
         echo ""
         print_status "Configuration:"
@@ -149,7 +149,7 @@ show_status() {
         echo "  Threshold: ${CAD_RMB_THRESHOLD:-5.05}"
         echo "  Log File: $LOG_FILE"
         echo "  PID File: $PID_FILE"
-        
+
         # Show recent log entries
         if [ -f "$LOG_FILE" ]; then
             echo ""

@@ -236,22 +236,22 @@ This project is licensed under the MIT License.
 
 ### Common Issues
 
-**Email Notifications Not Working**: 
+**Email Notifications Not Working**:
 - Verify Gmail App Password is correct and 2FA is enabled
 - Check that recipient emails are valid
 - Ensure firewall allows SMTP connections
 
-**API Rate Limits**: 
+**API Rate Limits**:
 - The free tier allows 1,500 requests/month
 - Consider upgrading to paid tier for higher limits
 - Monitor usage in logs
 
-**Docker Issues**: 
+**Docker Issues**:
 - Ensure Docker and Docker Compose are installed and running
 - Check that .env file is properly configured
 - Verify container logs for errors
 
-**Daemon Issues**: 
+**Daemon Issues**:
 - Check daemon logs: `tail -f currency_daemon.log`
 - Verify daemon status: `./scripts/run_daemon.sh status`
 - Ensure proper permissions on script files

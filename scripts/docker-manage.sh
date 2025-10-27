@@ -50,17 +50,17 @@ check_env_file() {
 # Function to start container
 start_container() {
     check_docker
-    
+
     if ! check_env_file; then
         print_error "Please configure .env file first"
         exit 1
     fi
-    
+
     print_status "Starting Currency Exchange Rate Monitor container..."
-    
+
     cd "$PROJECT_DIR"
     docker-compose up -d
-    
+
     if [ $? -eq 0 ]; then
         print_success "Container started successfully"
         print_status "Container name: currency-monitor"
@@ -75,12 +75,12 @@ start_container() {
 # Function to stop container
 stop_container() {
     check_docker
-    
+
     print_status "Stopping Currency Exchange Rate Monitor container..."
-    
+
     cd "$PROJECT_DIR"
     docker-compose down
-    
+
     if [ $? -eq 0 ]; then
         print_success "Container stopped successfully"
     else
@@ -100,12 +100,12 @@ restart_container() {
 # Function to show container status
 show_status() {
     check_docker
-    
+
     print_status "Currency Exchange Rate Monitor Container Status"
     echo "====================================================="
-    
+
     cd "$PROJECT_DIR"
-    
+
     # Check if container is running
     if docker-compose ps | grep -q "Up"; then
         print_success "Status: RUNNING"
@@ -126,10 +126,10 @@ show_status() {
 # Function to show logs
 show_logs() {
     check_docker
-    
+
     print_status "Showing Currency Exchange Rate Monitor container logs..."
     echo "============================================================="
-    
+
     cd "$PROJECT_DIR"
     docker-compose logs -f
 }
@@ -137,12 +137,12 @@ show_logs() {
 # Function to build container
 build_container() {
     check_docker
-    
+
     print_status "Building Currency Exchange Rate Monitor container..."
-    
+
     cd "$PROJECT_DIR"
     docker-compose build --no-cache
-    
+
     if [ $? -eq 0 ]; then
         print_success "Container built successfully"
     else

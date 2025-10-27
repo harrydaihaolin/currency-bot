@@ -42,22 +42,22 @@ jobs:
           from currency.monitor.currency_monitor import CurrencyMonitor
           from currency.notifications.currency_notifications import CurrencyNotificationManager
           from datetime import datetime
-          
+
           print('🔍 Running CAD-RMB currency rate check...')
-          
+
           # Initialize components
           config = CurrencyConfig()
           monitor = CurrencyMonitor(config)
           notifications = CurrencyNotificationManager(config)
-          
+
           # Get current rate
           current_rate = monitor.get_current_rate()
           threshold = config.get_monitoring_config()['threshold']
-          
+
           if current_rate:
               print(f'💱 Current CAD-RMB rate: {current_rate}')
               print(f'🎯 Threshold: {threshold}')
-              
+
               # Prepare rate data
               rate_data = {
                   'current_rate': current_rate,
@@ -65,10 +65,10 @@ jobs:
                   'timestamp': datetime.now().isoformat(),
                   'currency_pair': 'CAD-RMB'
               }
-              
+
               # Send smart notifications
               notification_sent = notifications.send_notifications(rate_data)
-              
+
               if notification_sent:
                   if current_rate < threshold:
                       print('📧 Alert notification sent!')
@@ -78,7 +78,7 @@ jobs:
                   print('📧 No notification needed')
           else:
               print('❌ Failed to fetch current exchange rate')
-          
+
           print('✅ Currency monitoring completed!')
           EOF
 
@@ -113,7 +113,7 @@ jobs:
           from currency.monitor.currency_monitor import CurrencyMonitor
           from currency.notifications.currency_notifications import CurrencyNotificationManager
           print('✅ Health check passed - all currency bot modules import successfully')
-          
+
           # Test API connectivity
           config = CurrencyConfig()
           monitor = CurrencyMonitor(config)

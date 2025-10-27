@@ -67,7 +67,7 @@ get_repo_name() {
 prompt_credentials() {
     print_status "Setting up credentials for automated currency monitoring..."
     echo ""
-    
+
     # Currency Bot Credentials
     print_status "=== CAD-RMB Currency Bot Credentials ==="
     read -p "Currency Notification Email (Gmail): " CURRENCY_NOTIFICATION_EMAIL
@@ -75,16 +75,16 @@ prompt_credentials() {
     echo ""
     read -p "Recipient Emails (comma-separated): " CURRENCY_RECIPIENT_EMAILS
     read -p "CAD-RMB Threshold (default: 5.05): " CAD_RMB_THRESHOLD
-    
+
     # Set defaults
     if [ -z "$CURRENCY_RECIPIENT_EMAILS" ]; then
         CURRENCY_RECIPIENT_EMAILS="$CURRENCY_NOTIFICATION_EMAIL"
     fi
-    
+
     if [ -z "$CAD_RMB_THRESHOLD" ]; then
         CAD_RMB_THRESHOLD="5.05"
     fi
-    
+
     echo ""
     print_status "=== Optional Exchange Rate API Configuration ==="
     read -p "Exchange Rate API Key (optional): " EXCHANGE_API_KEY
@@ -93,38 +93,38 @@ prompt_credentials() {
 # Function to set secrets
 set_secrets() {
     print_status "Setting GitHub Secrets..."
-    
+
     # Currency Bot Secrets
     gh secret set CURRENCY_NOTIFICATION_EMAIL --body "$CURRENCY_NOTIFICATION_EMAIL"
     gh secret set CURRENCY_GMAIL_APP_PASSWORD --body "$CURRENCY_GMAIL_APP_PASSWORD"
     gh secret set CURRENCY_RECIPIENT_EMAILS --body "$CURRENCY_RECIPIENT_EMAILS"
     gh secret set CAD_RMB_THRESHOLD --body "$CAD_RMB_THRESHOLD"
-    
+
     # Optional API Key
     if [ ! -z "$EXCHANGE_API_KEY" ]; then
         gh secret set EXCHANGE_API_KEY --body "$EXCHANGE_API_KEY"
     fi
-    
+
     print_success "All secrets set successfully!"
 }
 
 # Function to verify secrets
 verify_secrets() {
     print_status "Verifying secrets..."
-    
+
     # List all secrets
     gh secret list
-    
+
     print_success "Secrets verification complete!"
 }
 
 # Function to test workflow
 test_workflow() {
     print_status "Testing periodic currency monitoring workflow..."
-    
+
     # Trigger the workflow
     gh workflow run periodic-monitoring.yml
-    
+
     print_success "Workflow triggered! Check the Actions tab for results."
     print_status "You can monitor progress with: gh run list"
 }
@@ -139,18 +139,18 @@ show_secrets() {
 delete_secrets() {
     print_warning "This will delete all currency bot secrets!"
     read -p "Are you sure? (y/N): " confirm
-    
+
     if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
         print_status "Deleting secrets..."
-        
+
         gh secret delete CURRENCY_NOTIFICATION_EMAIL --confirm
         gh secret delete CURRENCY_GMAIL_APP_PASSWORD --confirm
         gh secret delete CURRENCY_RECIPIENT_EMAILS --confirm
         gh secret delete CAD_RMB_THRESHOLD --confirm
-        
+
         # Try to delete optional secrets (may not exist)
         gh secret delete EXCHANGE_API_KEY --confirm 2>/dev/null || true
-        
+
         print_success "Secrets deleted successfully!"
     else
         print_status "Operation cancelled."

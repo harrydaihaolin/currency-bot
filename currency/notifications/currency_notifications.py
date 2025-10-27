@@ -17,31 +17,55 @@ class CurrencyNotificationManager(BaseNotificationManager):
     def __init__(self, config: CurrencyConfig):
         super().__init__(config)
 
-    def _format_email_message(self, rate_data: Dict[str, Any], is_alert: bool = True) -> str:
+    def _format_email_message(
+        self, rate_data: Dict[str, Any], is_alert: bool = True
+    ) -> str:
         """Format email message for CAD-RMB rate alert or daily summary"""
         current_rate = rate_data.get("current_rate", 0)
         threshold = rate_data.get("threshold", 0)
         timestamp = rate_data.get("timestamp", datetime.now().isoformat())
         currency_pair = rate_data.get("currency_pair", "CAD-RMB")
-        
+
         # Calculate the difference
         difference = current_rate - threshold
         percentage_change = (difference / threshold) * 100 if threshold > 0 else 0
-        
+
         # Format timestamp for display
         try:
-            dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-        except:
+        except (ValueError, TypeError):
             formatted_time = timestamp
 
         # Choose template based on type
         if is_alert:
-            return self._format_alert_email(current_rate, threshold, difference, percentage_change, formatted_time, currency_pair)
+            return self._format_alert_email(
+                current_rate,
+                threshold,
+                difference,
+                percentage_change,
+                formatted_time,
+                currency_pair,
+            )
         else:
-            return self._format_summary_email(current_rate, threshold, difference, percentage_change, formatted_time, currency_pair)
-    
-    def _format_alert_email(self, current_rate: float, threshold: float, difference: float, percentage_change: float, formatted_time: str, currency_pair: str) -> str:
+            return self._format_summary_email(
+                current_rate,
+                threshold,
+                difference,
+                percentage_change,
+                formatted_time,
+                currency_pair,
+            )
+
+    def _format_alert_email(
+        self,
+        current_rate: float,
+        threshold: float,
+        difference: float,
+        percentage_change: float,
+        formatted_time: str,
+        currency_pair: str,
+    ) -> str:
         """Format alert email (rate below threshold)"""
         html_body = f"""
         <html>
@@ -50,12 +74,12 @@ class CurrencyNotificationManager(BaseNotificationManager):
                 <h2 style="color: #e74c3c; text-align: center;">
                     🚨 Currency Exchange Rate Alert
                 </h2>
-                
+
                 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="color: #2c3e50; margin-top: 0;">
                         {currency_pair} Exchange Rate Alert
                     </h3>
-                    
+
                     <div style="display: flex; justify-content: space-between; margin: 15px 0;">
                         <div style="text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">
@@ -65,7 +89,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                                 Current Rate (1 CAD = X RMB)
                             </div>
                         </div>
-                        
+
                         <div style="text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: #27ae60;">
                                 {threshold:.4f}
@@ -75,14 +99,14 @@ class CurrencyNotificationManager(BaseNotificationManager):
                             </div>
                         </div>
                     </div>
-                    
+
                     <div style="text-align: center; margin: 20px 0;">
                         <div style="font-size: 18px; font-weight: bold; color: #e74c3c;">
                             Difference: {difference:+.4f} ({percentage_change:+.2f}%)
                         </div>
                     </div>
                 </div>
-                
+
                 <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <h4 style="color: #856404; margin-top: 0;">
                         ⚠️ Alert Details
@@ -97,7 +121,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                         Alert triggered at: <strong>{formatted_time}</strong>
                     </p>
                 </div>
-                
+
                 <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <h4 style="color: #0c5460; margin-top: 0;">
                         📊 What This Means
@@ -109,7 +133,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                         This could be a good time to exchange CAD for RMB if you're planning to make a purchase in China.
                     </p>
                 </div>
-                
+
                 <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
                     <p style="color: #6c757d; font-size: 14px; margin: 0;">
                         This alert was generated by your Currency Exchange Rate Monitor
@@ -122,10 +146,18 @@ class CurrencyNotificationManager(BaseNotificationManager):
         </body>
         </html>
         """
-        
+
         return html_body
-    
-    def _format_summary_email(self, current_rate: float, threshold: float, difference: float, percentage_change: float, formatted_time: str, currency_pair: str) -> str:
+
+    def _format_summary_email(
+        self,
+        current_rate: float,
+        threshold: float,
+        difference: float,
+        percentage_change: float,
+        formatted_time: str,
+        currency_pair: str,
+    ) -> str:
         """Format daily summary email (rate above threshold)"""
         html_body = f"""
         <html>
@@ -134,12 +166,12 @@ class CurrencyNotificationManager(BaseNotificationManager):
                 <h2 style="color: #27ae60; text-align: center;">
                     📊 Daily Currency Summary
                 </h2>
-                
+
                 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="color: #2c3e50; margin-top: 0;">
                         {currency_pair} Daily Summary
                     </h3>
-                    
+
                     <div style="display: flex; justify-content: space-between; margin: 15px 0;">
                         <div style="text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: #27ae60;">
@@ -149,7 +181,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                                 Current Rate (1 CAD = X RMB)
                             </div>
                         </div>
-                        
+
                         <div style="text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: #6c757d;">
                                 {threshold:.4f}
@@ -159,14 +191,14 @@ class CurrencyNotificationManager(BaseNotificationManager):
                             </div>
                         </div>
                     </div>
-                    
+
                     <div style="text-align: center; margin: 20px 0;">
                         <div style="font-size: 18px; font-weight: bold; color: #27ae60;">
                             Difference: {difference:+.4f} ({percentage_change:+.2f}%)
                         </div>
                     </div>
                 </div>
-                
+
                 <div style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <h4 style="color: #155724; margin-top: 0;">
                         ✅ Status Update
@@ -181,7 +213,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                         Summary generated at: <strong>{formatted_time}</strong>
                     </p>
                 </div>
-                
+
                 <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <h4 style="color: #0c5460; margin-top: 0;">
                         📈 Market Analysis
@@ -193,7 +225,7 @@ class CurrencyNotificationManager(BaseNotificationManager):
                         No immediate trading opportunities detected. We'll continue monitoring and alert you if the rate drops below {threshold:.4f}.
                     </p>
                 </div>
-                
+
                 <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
                     <p style="color: #6c757d; font-size: 14px; margin: 0;">
                         Daily summary from your Currency Exchange Rate Monitor
@@ -206,5 +238,5 @@ class CurrencyNotificationManager(BaseNotificationManager):
         </body>
         </html>
         """
-        
+
         return html_body
